@@ -1,0 +1,154 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <!--[if IE]>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <![endif]-->
+    <title>Bootstrap Chat Box Example</title>
+    <!-- BOOTSTRAP CORE STYLE CSS -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME  CSS -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE CSS -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+	<script src="/_ah/channel/jsapi"></script>	
+	<script>
+		$(document).ready(
+			function() {
+				var $content = $('#content');
+				var $msg = $('#msg');
+				var token;
+
+				function get_token() {
+					$.get('/get_token', function(data){
+						if (data) {
+							token = data;
+							openChannel();
+						} else {
+							$msg.prepend('<p>Sorry, this chat room has reached the capacity of anonymous users, you need <a href="/login">login</a> to join them.</p>');
+						}
+					});
+				}
+				get_token();
+
+				function onOpen() {
+					$.post('/open', {'token': token});
+				}
+
+				function onMessage(m) {
+        			var message = $.parseJSON(m.data);
+					message = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+					$msg.prepend('<blockquote><pre>' + message + '</pre></blockquote>');
+				}
+
+				function openChannel() {
+					var channel = new goog.appengine.Channel(token);
+					var handler = {
+					  'onopen': onOpen,
+					  'onmessage': onMessage,
+					  'onerror': function() {},
+					  'onclose': function() {$msg.prepend('<p>Your session has expired, you can refresh this page to join the chat room again.</p>');} // you can reopen the channel here if token has expired
+					};
+					channel.open(handler);
+				}
+
+				function submit() {
+					if (token) {
+						$.ajax({
+							url: '/post_msg',
+							type: 'POST',
+							data: {'token': token, 'content': $content.val()}
+						});
+						$content.val('').focus();
+					}
+				}
+
+				$content.keypress(function(e) {
+					if (e.shiftKey && e.keyCode == 13) {
+						submit();
+						return false;
+					}
+				});
+				$('#submit_msg').click(submit);
+
+				$(window).bind('beforeunload', function() {
+					if (token)
+						$.post('/del_token', {'token': token}); // it will take a risk of hack attack, you can use AJAX pull for tracking client connections instead
+				})
+			}
+		);
+	</script>
+</head>
+<body>
+
+
+    <div class="container">
+        <div class="row pad-top pad-bottom">
+
+
+            <div class=" col-lg-6 col-md-6 col-sm-6">
+                <div class="chat-box-div">
+                    <div class="chat-box-head">
+                        GROUP CHAT HISTORY
+                            <div class="btn-group pull-right">
+                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <span class="fa fa-cogs"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#"><span class="fa fa-map-marker"></span>&nbsp;Invisible</a></li>
+                                    <li><a href="#"><span class="fa fa-comments-o"></span>&nbsp;Online</a></li>
+                                    <li><a href="#"><span class="fa fa-lock"></span>&nbsp;Busy</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="#"><span class="fa fa-circle-o-notch"></span>&nbsp;Logout</a></li>
+                                </ul>
+                            </div>
+                    </div>
+                    <div class="panel-body chat-box-main" id="msg">
+                        <div class="chat-box-left">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                           Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                        </div>
+                        <div class="chat-box-name-left">
+                            <img src="assets/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+                            -  Justine Goliyad
+                        </div>
+                        <hr class="hr-clas" />
+                        <div class="chat-box-right">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                           Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                        </div>
+                        <div class="chat-box-name-right">
+                            <img src="assets/img/user.gif" alt="bootstrap Chat box user image" class="img-circle" />
+                            - Romin Royeelin
+                        </div>
+                        <hr class="hr-clas" />
+                       
+                    </div>
+                    <div class="chat-box-footer">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="content" placeholder="Enter Text Here...">
+                            <span class="input-group-btn">
+                                <button class="btn btn-info" id="submit_msg" type="button">SEND</button>
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            
+            
+    </div>
+
+    <!-- USING SCRIPTS BELOW TO REDUCE THE LOAD TIME -->
+    <!-- CORE JQUERY SCRIPTS FILE -->
+    <script src="assets/js/jquery-1.11.1.js"></script>
+    <!-- CORE BOOTSTRAP SCRIPTS  FILE -->
+    <script src="assets/js/bootstrap.js"></script>
+</body>
+
+</html>

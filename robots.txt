@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /_ah/
+Disallow: /post_msg
+Disallow: /open
+Disallow: /get_token
+Disallow: /del_token
+Disallow: /login

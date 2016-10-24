@@ -1,0 +1,42 @@
+application: cp200-tebza
+version: chat
+runtime: python
+api_version: 1
+
+skip_files: |
+ ^(.*/)?(
+ (app\.yaml)|
+ (#.*#)|
+ (.*~)|
+ (.*\.py[co])|
+ (.*/RCS/.*)|
+ (\..*)|
+ (.*/\.svn/.*)|
+ (.*/Thumbs\.db)
+ )$
+
+handlers:
+
+- url: /
+  static_files: main.html
+  upload: main.html
+
+- url: /jquery.js
+  static_files: jquery.js
+  upload: jquery.js
+
+- url: /favicon.ico
+  static_files: favicon.ico
+  upload: favicon.ico
+  mime_type: image/x-icon
+
+- url: /robots.txt
+  static_files: robots.txt
+  upload: robots.txt
+
+- url: /_ah/admin/.*
+  script: $PYTHON_LIB/google/appengine/ext/admin
+  login: admin
+
+- url: .*
+  script: main.py
